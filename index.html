@@ -21,18 +21,25 @@ button{appearance:none; -webkit-appearance:none}
 /* Layout: settings 1fr + start auto */
 .app{height:100dvh; display:grid; grid-template-rows:1fr auto}
 
-/* Brand */
-.brand{padding-top:calc(env(safe-area-inset-top,0px)+14px); margin:0 0 12px}
-.brandTitle{margin:0; font-weight:1000; font-size:clamp(28px,8vw,40px); line-height:1.06; letter-spacing:.02em; color:#eef5ff}
+/* Settings */
+.settings{padding:8px 14px 10px; background:var(--panel); border-bottom:1px solid #1b2433; overflow:hidden}
+.settingsInner{transform-origin:top center}
+
+/* Home link + Brand */
+.brand{padding-top:calc(env(safe-area-inset-top,0px)+8px); margin:0 0 12px}
+.homeLink{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 10px; border-radius:10px; border:1px solid #2a374b;
+  color:#d8e6fb; text-decoration:none; font-weight:800; font-size:13px; background:#0e1420;
+}
+.homeLink:hover{filter:brightness(1.06)}
+.brandTitle{margin:8px 0 0; font-weight:1000; font-size:clamp(28px,8vw,40px); line-height:1.06; letter-spacing:.02em; color:#eef5ff}
 .brandTitle .accent{
   background:linear-gradient(90deg,#22d3ee 0%, #3b82f6 55%, #a855f7 100%);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent
 }
 .brandSub{margin-top:6px; font-size:12.5px; color:var(--muted)}
 
-/* Settings */
-.settings{padding:8px 14px 10px; background:var(--panel); border-bottom:1px solid #1b2433; overflow:hidden}
-.settingsInner{transform-origin:top center}
 .heading{font-size:18px; color:#cfe1ff; font-weight:800; margin-top:8px}
 .sub{font-size:13px; color:var(--muted)}
 .row{display:grid; gap:10px; margin-top:8px; align-items:start}
@@ -81,8 +88,9 @@ button{appearance:none; -webkit-appearance:none}
   <section id="settings" class="settings">
     <div id="settingsInner" class="settingsInner">
       <div class="brand">
+        <a class="homeLink" href="https://cavimat99.github.io/Home-MC/" rel="noopener">← Torna a HOME</a>
         <h1 class="brandTitle">HomeFit <span class="accent">Coach</span></h1>
-        <div class="brandSub">allenamenti guidati · solo voce, colori e timer</div>
+        <div class="brandSub">allenamenti guidati · colori e timer</div>
       </div>
 
       <div class="heading">Imposta allenamento</div>
@@ -103,9 +111,11 @@ button{appearance:none; -webkit-appearance:none}
         <div class="row">
           <div class="label">Lavoro (s)</div>
           <div class="chips">
+            <button class="chip" data-group="work" data-value="15">15</button>
             <button class="chip" data-group="work" data-value="20">20</button>
             <button class="chip selected" data-group="work" data-value="30">30</button>
             <button class="chip" data-group="work" data-value="45">45</button>
+            <button class="chip" data-group="work" data-value="60">60</button>
           </div>
         </div>
         <div class="row">
@@ -114,6 +124,8 @@ button{appearance:none; -webkit-appearance:none}
             <button class="chip" data-group="rest" data-value="10">10</button>
             <button class="chip selected" data-group="rest" data-value="20">20</button>
             <button class="chip" data-group="rest" data-value="30">30</button>
+            <button class="chip" data-group="rest" data-value="45">45</button>
+            <button class="chip" data-group="rest" data-value="60">60</button>
           </div>
         </div>
       </div>
@@ -122,9 +134,10 @@ button{appearance:none; -webkit-appearance:none}
         <div class="row">
           <div class="label">Round</div>
           <div class="chips">
-            <button class="chip" data-group="rounds" data-value="6">6</button>
-            <button class="chip selected" data-group="rounds" data-value="8">8</button>
-            <button class="chip" data-group="rounds" data-value="10">10</button>
+            <button class="chip" data-group="rounds" data-value="1">1</button>
+            <button class="chip" data-group="rounds" data-value="3">3</button>
+            <button class="chip selected" data-group="rounds" data-value="5">5</button>
+            <button class="chip" data-group="rounds" data-value="8">8</button>
           </div>
         </div>
         <div class="row">
@@ -138,10 +151,8 @@ button{appearance:none; -webkit-appearance:none}
       </div>
 
       <div class="row">
-        <div class="label">Voce & Suoni</div>
+        <div class="label">Suono</div>
         <div class="chips">
-          <button class="chip small selected" data-group="voice" data-value="on">Voce ON</button>
-          <button class="chip small" data-group="voice" data-value="off">Voce OFF</button>
           <button class="chip small selected" data-group="beep" data-value="on">Beep ON</button>
           <button class="chip small" data-group="beep" data-value="off">Beep OFF</button>
         </div>
@@ -180,7 +191,7 @@ button{appearance:none; -webkit-appearance:none}
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
 
-  /* --- Esercizi (semplici, niente immagini) --- */
+  /* --- Esercizi --- */
   const EX = {
     total: [
       "Jumping Jack","Squat","Affondi alternati","Mountain Climber",
@@ -209,9 +220,9 @@ button{appearance:none; -webkit-appearance:none}
   /* --- Stato --- */
   let app = {
     running:false, paused:false,
-    workMs:30000, restMs:20000, rounds:8, countdownMs:3000,
-    voice:true, beep:true, cat:'total',
-    roundIndex:0, phase:'idle', // 'countdown'|'work'|'rest'|'fine'
+    workMs:30000, restMs:20000, rounds:5, countdownMs:3000,
+    beep:true, cat:'total',
+    roundIndex:0, phase:'idle',
     startTs:0, endTs:0, raf:0, pauseTs:0,
     currentEx:'', nextEx:''
   };
@@ -244,7 +255,6 @@ button{appearance:none; -webkit-appearance:none}
         if(group==='rest') app.restMs = +ch.dataset.value*1000;
         if(group==='rounds') app.rounds = +ch.dataset.value;
         if(group==='countdown') app.countdownMs = +ch.dataset.value*1000;
-        if(group==='voice') app.voice = (ch.dataset.value==='on');
         if(group==='beep') app.beep = (ch.dataset.value==='on');
         fitSettings();
       }, {passive:true});
@@ -265,7 +275,7 @@ button{appearance:none; -webkit-appearance:none}
     inner.style.marginTop = `${Math.max(0,(avail-used)*0.15)}px`;
   }
 
-  /* --- Beep & Voce --- */
+  /* --- Beep --- */
   let audioCtx=null;
   function beep(f=880, d=0.08, type='sine'){
     if(!app.beep) return;
@@ -279,55 +289,62 @@ button{appearance:none; -webkit-appearance:none}
       o.start(); o.stop(ctx.currentTime+d);
     }catch(e){}
   }
-  function speak(t){
-    if(!app.voice) return;
-    try{
-      const u = new SpeechSynthesisUtterance(t);
-      u.lang='it-IT'; u.rate=1; u.pitch=1; u.volume=1;
-      speechSynthesis.cancel();
-      speechSynthesis.speak(u);
-    }catch(e){}
-  }
 
   /* --- Helpers --- */
   const fmt=(ms)=> (Math.ceil(ms/100)/10).toFixed(1);
-  function randEx(){
-    const list = EX[app.cat] || EX.total;
-    return list[Math.floor(Math.random()*list.length)];
-  }
+  const listForCat = ()=> EX[app.cat] || EX.total;
+  const randEx = ()=> {
+    const L=listForCat();
+    return L[Math.floor(Math.random()*L.length)];
+  };
   function flash(){ els.flash.classList.remove('on'); void els.flash.offsetWidth; els.flash.classList.add('on'); }
-
-  /* --- Fasi --- */
   function setPhase(p){
-    app.phase=p;
-    els.phase.textContent = p.toUpperCase();
+    app.phase=p; els.phase.textContent = p.toUpperCase();
     if(p==='work'){ els.stage.style.background='#0a0f16'; }
     if(p==='rest'){ els.stage.style.background='#06101d'; }
-    if(p==='countdown'){ els.stage.style.background='#0a0f16'; }
-    if(p==='fine'){ els.stage.style.background='#0a0f16'; }
+    if(p==='countdown' || p==='fine'){ els.stage.style.background='#0a0f16'; }
   }
   function setTimer(ms){ els.timeLeft.textContent = fmt(ms); }
   function setRound(){ els.roundInfo.textContent = `Round ${app.roundIndex+1} di ${app.rounds}`; }
+  function showRun(on){
+    if(on){
+      els.settings.style.display='none';
+      document.querySelector('.startBar').style.display='none';
+      els.run.classList.add('on');
+    }else{
+      els.run.classList.remove('on');
+      els.settings.style.display='block';
+      document.querySelector('.startBar').style.display='flex';
+      fitSettings();
+      els.phase.textContent='PRONTO';
+      els.exercise.textContent='—';
+      els.timeLeft.textContent='0.0';
+      els.nextUp.textContent='';
+      els.stage.style.background='#000';
+    }
+  }
 
+  /* --- Flow --- */
   function start(){
     if(app.running) return;
     app.running = true; app.paused=false; app.roundIndex=0;
+
     app.currentEx = randEx();
-    app.nextEx = randEx();
+    app.nextEx = (app.rounds>1) ? randEx() : '';
+
     els.exercise.textContent = (app.countdownMs>0) ? 'PARTENZA' : app.currentEx;
-    els.nextUp.textContent = (app.countdownMs>0) ? '' : `Dopo: ${app.nextEx}`;
+    els.nextUp.textContent = (app.countdownMs>0 || app.rounds<=1) ? '' : `Dopo: ${app.nextEx}`;
     setRound();
+
     if(app.countdownMs>0){
       setPhase('countdown');
       const t=performance.now();
       app.startTs=t; app.endTs=t+app.countdownMs;
       setTimer(app.countdownMs);
-      speak('Pronti');
       beep(660,0.12,'triangle');
     }else{
       enterWork();
     }
-    showRun(true);
     app.raf = requestAnimationFrame(loop);
   }
 
@@ -336,8 +353,7 @@ button{appearance:none; -webkit-appearance:none}
     const t=performance.now();
     app.startTs=t; app.endTs=t+app.workMs;
     els.exercise.textContent = app.currentEx;
-    els.nextUp.textContent = `Dopo: ${app.nextEx}`;
-    speak(app.currentEx);
+    els.nextUp.textContent = (app.roundIndex < app.rounds-1 && app.nextEx) ? `Dopo: ${app.nextEx}` : '';
     beep(1200,0.06,'square'); setTimeout(()=>beep(900,0.06,'square'),70);
     flash();
   }
@@ -347,7 +363,6 @@ button{appearance:none; -webkit-appearance:none}
     els.exercise.textContent = 'RECUPERO';
     const t=performance.now();
     app.startTs=t; app.endTs=t+app.restMs;
-    speak('Recupero');
     beep(520,0.1,'sine');
   }
 
@@ -357,9 +372,8 @@ button{appearance:none; -webkit-appearance:none}
       finish();
       return;
     }
-    // Avanza esercizi
-    app.currentEx = app.nextEx;
-    app.nextEx = randEx();
+    app.currentEx = app.nextEx || randEx();
+    app.nextEx = (app.roundIndex < app.rounds-1) ? randEx() : '';
     setRound();
     enterWork();
   }
@@ -380,17 +394,15 @@ button{appearance:none; -webkit-appearance:none}
     cancelAnimationFrame(app.raf);
     els.exercise.textContent='PAUSA';
     els.nextUp.textContent='';
-    els.bbToggle.textContent='Riprendi';
-    speak('Pausa');
+    $('bbToggle').textContent='Riprendi';
   }
   function resume(){
     if(!app.running || !app.paused) return;
     const now=performance.now();
     const delta = now - app.pauseTs;
     app.startTs += delta; app.endTs += delta;
-    app.paused=false; els.bbToggle.textContent='Pausa';
-    // Ripristina subito la scritta corretta se eravamo in lavoro
-    if(app.phase==='work'){ els.exercise.textContent = app.currentEx; els.nextUp.textContent = `Dopo: ${app.nextEx}`; }
+    app.paused=false; $('bbToggle').textContent='Pausa';
+    if(app.phase==='work'){ els.exercise.textContent = app.currentEx; els.nextUp.textContent = (app.roundIndex < app.rounds-1 && app.nextEx) ? `Dopo: ${app.nextEx}` : ''; }
     app.raf = requestAnimationFrame(loop);
   }
   function stop(){
@@ -406,36 +418,18 @@ button{appearance:none; -webkit-appearance:none}
     const msLeft = Math.max(0, app.endTs - now);
     setTimer(msLeft);
 
-    // preannuncio prossimo esercizio a 3s dalla fine del lavoro
-    if(app.phase==='work' && msLeft<=3000 && msLeft>2900){
-      speak('Prossimo: ' + app.nextEx);
-    }
-
     if(msLeft<=0){
       if(app.phase==='countdown'){ enterWork(); }
-      else if(app.phase==='work'){ enterRest(); }
+      else if(app.phase==='work'){
+        // Se è l'ultimo round, finisce subito (niente recupero)
+        if(app.roundIndex >= app.rounds-1){ finish(); }
+        else{
+          if(app.restMs>0) enterRest(); else nextRound();
+        }
+      }
       else if(app.phase==='rest'){ nextRound(); }
     }
     app.raf = requestAnimationFrame(loop);
-  }
-
-  function showRun(on){
-    if(on){
-      els.settings.style.display='none';
-      document.querySelector('.startBar').style.display='none';
-      els.run.classList.add('on');
-    }else{
-      els.run.classList.remove('on');
-      els.settings.style.display='block';
-      document.querySelector('.startBar').style.display='flex';
-      fitSettings();
-      // reset testi
-      els.phase.textContent='PRONTO';
-      els.exercise.textContent='—';
-      els.timeLeft.textContent='0.0';
-      els.nextUp.textContent='';
-      els.stage.style.background='#000';
-    }
   }
 
   /* Events */
