@@ -18,12 +18,12 @@ html,body{height:100%; overflow:hidden}
 body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"SF Pro",Inter,Roboto,Arial,sans-serif}
 button{appearance:none; -webkit-appearance:none}
 
-/* Layout: header/settings scroll + start fisso in basso */
+/* Layout */
 .app{height:100dvh; display:grid; grid-template-rows:1fr auto}
 
-/* SETTINGS: ora SCORRONO (niente transform/scale) */
+/* SETTINGS (scroll) */
 .settings{
-  padding:8px 14px 100px; /* 100px per non finire sotto la startBar */
+  padding:8px 14px 100px;
   background:var(--panel); border-bottom:1px solid #1b2433;
   overflow:auto; -webkit-overflow-scrolling:touch; position:relative; z-index:1;
 }
@@ -90,6 +90,9 @@ button{appearance:none; -webkit-appearance:none}
 }
 .bb{flex:1; max-width:280px; padding:14px 16px; border:none; border-radius:14px; font-size:18px; font-weight:800; color:#fff; cursor:pointer; touch-action:manipulation; pointer-events:auto;}
 .bb.primary{background:var(--accent)} .bb.danger{background:var(--danger)}
+
+/* disattiva clic temporaneamente */
+.pe-none{ pointer-events:none !important; }
 
 /* Flash bordo */
 .flash{position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 0 0 rgba(255,255,255,0)}
@@ -195,7 +198,7 @@ button{appearance:none; -webkit-appearance:none}
       </div>
       <div class="next" id="nextUp"></div>
     </div>
-    <div class="runBar">
+    <div class="runBar pe-none" id="runBar">
       <button id="bbToggle" class="bb primary">Pausa</button>
       <button id="bbStop" class="bb danger">Stop</button>
     </div>
@@ -236,6 +239,7 @@ button{appearance:none; -webkit-appearance:none}
     exercise: $('exercise'),
     timeLeft: $('timeLeft'),
     nextUp: $('nextUp'),
+    runBar: $('runBar'),
     bbToggle: $('bbToggle'),
     bbStop: $('bbStop')
   };
@@ -288,8 +292,17 @@ button{appearance:none; -webkit-appearance:none}
   function setRound(){ els.roundInfo.textContent=`Round ${app.roundIndex+1} di ${app.rounds}`; }
   function showRun(on){
     const bar=document.querySelector('.startBar');
-    if(on){ $('settings').style.display='none'; bar.style.display='none'; $('run').classList.add('on'); }
-    else{ $('run').classList.remove('on'); $('settings').style.display='block'; bar.style.display='flex';
+    if(on){
+      $('settings').style.display='none';
+      bar.style.display='none';
+      $('run').classList.add('on');
+      // evita che il primo tap colpisca STOP/Pausa
+      els.runBar.classList.add('pe-none');
+      setTimeout(()=>els.runBar.classList.remove('pe-none'), 350);
+    } else {
+      $('run').classList.remove('on');
+      $('settings').style.display='block';
+      bar.style.display='flex';
       els.phase.textContent='PRONTO'; els.exercise.textContent='—'; els.timeLeft.textContent='0.0'; els.nextUp.textContent=''; els.stage.style.background='#000';
     }
   }
@@ -317,7 +330,6 @@ button{appearance:none; -webkit-appearance:none}
     els.exercise.textContent=app.currentEx;
     els.nextUp.textContent=(app.roundIndex<app.rounds-1&&app.nextEx)?`Dopo: ${app.nextEx}`:'';
     beep(1200,0.06,'square'); setTimeout(()=>beep(900,0.06,'square'),70);
-    // flash bordo
     const f=document.getElementById('flash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
   }
 
@@ -366,10 +378,14 @@ button{appearance:none; -webkit-appearance:none}
 
   /* Eventi */
   bindChips();
-  // Start: ascolta anche touch/pointer per iOS
-  ['click','touchend','pointerup'].forEach(ev=>{ $('startBtn').addEventListener(ev, start, {passive:true}); });
-  $('bbToggle').addEventListener('click', ()=> app.paused ? resume() : pause(), {passive:true});
-  $('bbStop').addEventListener('click', stop, {passive:true});
+
+  // START: intercetta click/touch/pointer e blocca propagazione
+  ['click','touchend','pointerup'].forEach(ev=>{
+    $('startBtn').addEventListener(ev, (e)=>{ e.preventDefault(); e.stopPropagation(); start(); }, {passive:false});
+  });
+
+  $('bbToggle').addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); app.paused ? resume() : pause(); }, {passive:false});
+  $('bbStop').addEventListener('click',  (e)=>{ e.preventDefault(); e.stopPropagation(); stop(); }, {passive:false});
 })();
 </script>
 </body>
