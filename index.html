@@ -15,7 +15,7 @@
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{height:100%; overflow:hidden}
-body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"SF Pro",Inter,Roboto,Arial,sans-serif}
+body{margin:0; background:var(--bg); color:#e8eef6; font-family:system-ui,-apple-system,"SF Pro",Inter,Roboto,Arial,sans-serif}
 button{appearance:none; -webkit-appearance:none}
 
 /* Layout */
@@ -78,8 +78,24 @@ button{appearance:none; -webkit-appearance:none}
 .topBar{position:absolute; top:calc(8px + env(safe-area-inset-top)); left:0; right:0; display:flex; justify-content:space-between; padding:0 10px}
 .badge{font-size:12px; color:#b0c4de; background:rgba(10,16,24,.55); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.06)}
 .phase{font-size:clamp(12px,4vw,16px); color:#dbe9ff; background:rgba(10,16,24,.6); padding:6px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.08)}
-.center{text-align:center; padding:24px}
-.exercise{font-weight:1000; font-size:clamp(32px,10dvh,96px); line-height:1.1; color:#fff; letter-spacing:.02em; margin:.1em 0; padding:0 3vw}
+
+.center{ text-align:center; padding:24px 16px; max-width:94vw; }
+.exercise{
+  font-weight:1000;
+  /* il valore iniziale è alto, ma verrà ridotto automaticamente via JS */
+  font-size:96px;
+  line-height:1.08;
+  letter-spacing:.02em;
+  margin:.1em 0;
+  padding:0 4vw;
+  color:#fff;
+  text-align:center;
+  /* — WRAP sicuro — */
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  text-wrap:balance;
+}
 .timer{font-size:clamp(14px,3.5vw,22px); color:#e9f3ff; background:rgba(10,16,24,.45); padding:.4em .7em; border-radius:12px; border:1px solid rgba(255,255,255,.06); display:inline-block}
 .next{position:absolute; bottom:calc(64px + env(safe-area-inset-bottom)); left:0; right:0; text-align:center; font-size:14px; color:#c7d6ee}
 .runBar{
@@ -244,6 +260,44 @@ button{appearance:none; -webkit-appearance:none}
     bbStop: $('bbStop')
   };
 
+  /* ============ FIT TESTO ESERCIZIO ============ */
+  function fitExercise(){
+    // misura dopo che il DOM ha disegnato
+    requestAnimationFrame(()=>{
+      const el = els.exercise;
+      const stage = els.stage;
+      const timer = document.querySelector('.timer');
+      const topBar = document.querySelector('.topBar');
+      const next = $('nextUp');
+
+      // font massimo di partenza (px)
+      let size = Math.min(96, Math.max(28, Math.floor(window.innerHeight * 0.11)));
+      el.style.fontSize = size + 'px';
+      el.style.lineHeight = '1.08';
+
+      // spazio disponibile (toglie topBar, timer, "next up" e un margine)
+      const availW = stage.clientWidth * 0.9;
+      const availH = stage.clientHeight
+        - (topBar?.offsetHeight || 0)
+        - (timer?.offsetHeight || 0)
+        - (next?.offsetHeight || 0)
+        - 64; // margine di sicurezza
+
+      // riduci finché entra sia in larghezza che altezza
+      let guard = 0;
+      while (guard < 50 && size > 22 &&
+            (el.scrollWidth > availW || el.scrollHeight > availH)) {
+        size -= 2;
+        el.style.fontSize = size + 'px';
+        guard++;
+      }
+    });
+  }
+  function setExerciseText(txt){
+    els.exercise.textContent = txt;
+    fitExercise();
+  }
+
   /* Chip UI */
   function bindChips(){
     qsa('.chip').forEach(ch=>{
@@ -296,14 +350,14 @@ button{appearance:none; -webkit-appearance:none}
       $('settings').style.display='none';
       bar.style.display='none';
       $('run').classList.add('on');
-      // evita che il primo tap colpisca STOP/Pausa
       els.runBar.classList.add('pe-none');
       setTimeout(()=>els.runBar.classList.remove('pe-none'), 350);
+      fitExercise(); // assicurati che calcoli appena entra in RUN
     } else {
       $('run').classList.remove('on');
       $('settings').style.display='block';
       bar.style.display='flex';
-      els.phase.textContent='PRONTO'; els.exercise.textContent='—'; els.timeLeft.textContent='0.0'; els.nextUp.textContent=''; els.stage.style.background='#000';
+      els.phase.textContent='PRONTO'; setExerciseText('—'); setTimer(0); els.nextUp.textContent=''; els.stage.style.background='#000';
     }
   }
 
@@ -312,7 +366,7 @@ button{appearance:none; -webkit-appearance:none}
     if(app.running) return;
     app.running=true; app.paused=false; app.roundIndex=0;
     app.currentEx=randEx(); app.nextEx=(app.rounds>1)?randEx():'';
-    els.exercise.textContent=(app.countdownMs>0)?'PARTENZA':app.currentEx;
+    setExerciseText( (app.countdownMs>0)?'PARTENZA':app.currentEx );
     els.nextUp.textContent=(app.countdownMs>0||app.rounds<=1)?'':`Dopo: ${app.nextEx}`;
     setRound(); showRun(true);
 
@@ -327,14 +381,14 @@ button{appearance:none; -webkit-appearance:none}
   function enterWork(){
     setPhase('work');
     const t=performance.now(); app.startTs=t; app.endTs=t+app.workMs;
-    els.exercise.textContent=app.currentEx;
+    setExerciseText(app.currentEx);
     els.nextUp.textContent=(app.roundIndex<app.rounds-1&&app.nextEx)?`Dopo: ${app.nextEx}`:'';
     beep(1200,0.06,'square'); setTimeout(()=>beep(900,0.06,'square'),70);
     const f=document.getElementById('flash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
   }
 
   function enterRest(){
-    setPhase('rest'); els.exercise.textContent='RECUPERO';
+    setPhase('rest'); setExerciseText('RECUPERO');
     const t=performance.now(); app.startTs=t; app.endTs=t+app.restMs; beep(520,0.1,'sine');
   }
 
@@ -346,7 +400,7 @@ button{appearance:none; -webkit-appearance:none}
   }
 
   function finish(){
-    setPhase('fine'); els.exercise.textContent='FINE ✅'; els.nextUp.textContent=''; setTimer(0);
+    setPhase('fine'); setExerciseText('FINE ✅'); els.nextUp.textContent=''; setTimer(0);
     beep(440,0.1,'sine'); setTimeout(()=>beep(660,0.1,'sine'),120); setTimeout(()=>beep(880,0.1,'sine'),240);
     app.running=false; cancelAnimationFrame(app.raf); setTimeout(()=>showRun(false),700);
   }
@@ -354,12 +408,12 @@ button{appearance:none; -webkit-appearance:none}
   function pause(){
     if(!app.running||app.paused) return;
     app.paused=true; app.pauseTs=performance.now(); cancelAnimationFrame(app.raf);
-    els.exercise.textContent='PAUSA'; els.nextUp.textContent=''; $('bbToggle').textContent='Riprendi';
+    setExerciseText('PAUSA'); els.nextUp.textContent=''; $('bbToggle').textContent='Riprendi';
   }
   function resume(){
     if(!app.running||app.paused===false) return;
     const now=performance.now(), d=now-app.pauseTs; app.startTs+=d; app.endTs+=d; app.paused=false; $('bbToggle').textContent='Pausa';
-    if(app.phase==='work'){ els.exercise.textContent=app.currentEx; els.nextUp.textContent=(app.roundIndex<app.rounds-1&&app.nextEx)?`Dopo: ${app.nextEx}`:''; }
+    if(app.phase==='work'){ setExerciseText(app.currentEx); els.nextUp.textContent=(app.roundIndex<app.rounds-1&&app.nextEx)?`Dopo: ${app.nextEx}`:''; }
     app.raf=requestAnimationFrame(loop);
   }
   function stop(){ app.running=false; app.paused=false; cancelAnimationFrame(app.raf); showRun(false); }
@@ -379,13 +433,16 @@ button{appearance:none; -webkit-appearance:none}
   /* Eventi */
   bindChips();
 
-  // START: intercetta click/touch/pointer e blocca propagazione
+  // START: blocca tap fantasma e propagazione
   ['click','touchend','pointerup'].forEach(ev=>{
     $('startBtn').addEventListener(ev, (e)=>{ e.preventDefault(); e.stopPropagation(); start(); }, {passive:false});
   });
-
   $('bbToggle').addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); app.paused ? resume() : pause(); }, {passive:false});
   $('bbStop').addEventListener('click',  (e)=>{ e.preventDefault(); e.stopPropagation(); stop(); }, {passive:false});
+
+  // rifitta quando cambia orientamento/dimensioni
+  window.addEventListener('resize', fitExercise);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fitExercise);
 })();
 </script>
 </body>
