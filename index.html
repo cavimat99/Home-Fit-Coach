@@ -22,7 +22,7 @@ button{appearance:none; -webkit-appearance:none}
 .app{height:100dvh; display:grid; grid-template-rows:1fr auto}
 
 /* Settings */
-.settings{padding:8px 14px 10px; background:var(--panel); border-bottom:1px solid #1b2433; overflow:hidden}
+.settings{padding:8px 14px 10px; background:var(--panel); border-bottom:1px solid #1b2433; overflow:hidden; padding-bottom:90px;}
 .settingsInner{transform-origin:top center}
 
 /* Home link + Brand */
@@ -31,8 +31,8 @@ button{appearance:none; -webkit-appearance:none}
   display:inline-flex; align-items:center; gap:6px;
   padding:8px 10px; border-radius:10px; border:1px solid #2a374b;
   color:#d8e6fb; text-decoration:none; font-weight:800; font-size:13px; background:#0e1420;
+  margin-bottom:10px;
 }
-.homeLink:hover{filter:brightness(1.06)}
 .brandTitle{margin:8px 0 0; font-weight:1000; font-size:clamp(28px,8vw,40px); line-height:1.06; letter-spacing:.02em; color:#eef5ff}
 .brandTitle .accent{
   background:linear-gradient(90deg,#22d3ee 0%, #3b82f6 55%, #a855f7 100%);
@@ -49,16 +49,23 @@ button{appearance:none; -webkit-appearance:none}
 .chips{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
 .chip{
   padding:10px 12px; border-radius:12px; border:1px solid #273449; background:#0e1420; color:#d8e6fb;
-  font-size:15px; font-weight:700; cursor:pointer; user-select:none
+  font-size:15px; font-weight:700; cursor:pointer; user-select:none; touch-action:manipulation; pointer-events:auto;
 }
-.chip.small{font-size:13px; padding:8px 10px}
 .chip.selected{background:var(--accent); border-color:transparent; color:#fff; box-shadow:0 6px 18px rgba(59,130,246,.25)}
 .settings.compact .chip{padding:8px 10px; font-size:14px}
-.settings.compact .chip.small{padding:7px 9px; font-size:12px}
 
-/* Start bar */
-.startBar{padding:2px 12px calc(6px + env(safe-area-inset-bottom)); background:linear-gradient(180deg,rgba(10,16,24,0),rgba(10,16,24,.55)); display:flex; justify-content:center; align-items:center}
-.btn{width:100%; max-width:520px; height:54px; border:none; border-radius:16px; font-size:20px; font-weight:900; color:#fff; background:var(--accent); box-shadow:0 8px 18px rgba(59,130,246,.18); cursor:pointer}
+/* Start bar (fissa e sopra tutto) */
+.startBar{
+  position:fixed; left:0; right:0; bottom:0; z-index:50;
+  padding:2px 12px calc(6px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(10,16,24,0),rgba(10,16,24,.55));
+  display:flex; justify-content:center; align-items:center
+}
+.btn{
+  width:100%; max-width:520px; height:54px; border:none; border-radius:16px;
+  font-size:20px; font-weight:900; color:#fff; background:var(--accent);
+  box-shadow:0 8px 18px rgba(59,130,246,.18); cursor:pointer; touch-action:manipulation; pointer-events:auto;
+}
 
 /* RUN */
 .run{display:none; position:relative; background:#000}
@@ -71,8 +78,13 @@ button{appearance:none; -webkit-appearance:none}
 .exercise{font-weight:1000; font-size:clamp(32px,10dvh,96px); line-height:1.1; color:#fff; letter-spacing:.02em; margin:.1em 0; padding:0 3vw}
 .timer{font-size:clamp(14px,3.5vw,22px); color:#e9f3ff; background:rgba(10,16,24,.45); padding:.4em .7em; border-radius:12px; border:1px solid rgba(255,255,255,.06); display:inline-block}
 .next{position:absolute; bottom:calc(64px + env(safe-area-inset-bottom)); left:0; right:0; text-align:center; font-size:14px; color:#c7d6ee}
-.runBar{position:fixed; left:0; right:0; bottom:0; padding:max(8px, env(safe-area-inset-bottom)) 10px calc(12px + env(safe-area-inset-bottom)); display:flex; gap:10px; justify-content:center; background:linear-gradient(180deg,rgba(10,16,24,0),rgba(10,16,24,.65))}
-.bb{flex:1; max-width:280px; padding:14px 16px; border:none; border-radius:14px; font-size:18px; font-weight:800; color:#fff; cursor:pointer}
+.runBar{
+  position:fixed; left:0; right:0; bottom:0;
+  padding:max(8px, env(safe-area-inset-bottom)) 10px calc(12px + env(safe-area-inset-bottom));
+  display:flex; gap:10px; justify-content:center;
+  background:linear-gradient(180deg,rgba(10,16,24,0),rgba(10,16,24,.65))
+}
+.bb{flex:1; max-width:280px; padding:14px 16px; border:none; border-radius:14px; font-size:18px; font-weight:800; color:#fff; cursor:pointer; touch-action:manipulation; pointer-events:auto;}
 .bb.primary{background:var(--accent)} .bb.danger{background:var(--danger)}
 
 /* Flash bordo */
@@ -88,9 +100,12 @@ button{appearance:none; -webkit-appearance:none}
   <section id="settings" class="settings">
     <div id="settingsInner" class="settingsInner">
       <div class="brand">
-        <a class="homeLink" href="https://cavimat99.github.io/Home-MC/" rel="noopener">← Torna a HOME</a>
+        <a class="homeLink" href="https://cavimat99.github.io/Home-MC/" target="_self" rel="noopener">← Torna a HOME</a>
         <h1 class="brandTitle">HomeFit <span class="accent">Coach</span></h1>
+        <div class="brandSub">allenamenti guidati · colori e timer</div>
       </div>
+
+      <div class="heading">Imposta allenamento</div>
       <div class="sub">Scegli parametri e premi Start.</div>
 
       <div class="row">
@@ -150,15 +165,17 @@ button{appearance:none; -webkit-appearance:none}
       <div class="row">
         <div class="label">Suono</div>
         <div class="chips">
-          <button class="chip small selected" data-group="beep" data-value="on">Beep ON</button>
-          <button class="chip small" data-group="beep" data-value="off">Beep OFF</button>
+          <button class="chip selected" data-group="beep" data-value="on">Beep ON</button>
+          <button class="chip" data-group="beep" data-value="off">Beep OFF</button>
         </div>
       </div>
     </div>
   </section>
 
   <!-- START -->
-  <div class="startBar"><button id="startBtn" class="btn">START</button></div>
+  <div class="startBar">
+    <button id="startBtn" class="btn" onclick="window.__start && window.__start()">START</button>
+  </div>
 
   <!-- RUN -->
   <section id="run" class="run">
@@ -235,7 +252,6 @@ button{appearance:none; -webkit-appearance:none}
     exercise: $('exercise'),
     timeLeft: $('timeLeft'),
     nextUp: $('nextUp'),
-    startBtn: $('startBtn'),
     bbToggle: $('bbToggle'),
     bbStop: $('bbStop')
   };
@@ -247,22 +263,23 @@ button{appearance:none; -webkit-appearance:none}
         const group = ch.dataset.group;
         qsa(`.chip[data-group="${group}"]`).forEach(b=>b.classList.remove('selected'));
         ch.classList.add('selected');
-        if(group==='cat') app.cat = ch.dataset.value;
-        if(group==='work') app.workMs = +ch.dataset.value*1000;
-        if(group==='rest') app.restMs = +ch.dataset.value*1000;
-        if(group==='rounds') app.rounds = +ch.dataset.value;
-        if(group==='countdown') app.countdownMs = +ch.dataset.value*1000;
-        if(group==='beep') app.beep = (ch.dataset.value==='on');
+        const v = ch.dataset.value;
+        if(group==='cat') app.cat = v;
+        if(group==='work') app.workMs = +v*1000;
+        if(group==='rest') app.restMs = +v*1000;
+        if(group==='rounds') app.rounds = +v;
+        if(group==='countdown') app.countdownMs = +v*1000;
+        if(group==='beep') app.beep = (v==='on');
         fitSettings();
       }, {passive:true});
     });
   }
 
-  /* --- Fit: adatta i settings senza scroll --- */
+  /* --- Adattamento senza scroll (scala) --- */
   function fitSettings(){
-    const wrap = els.settings, inner = els.settingsInner;
+    const wrap = els.settings, inner = $('settingsInner');
     inner.style.transform='scale(1)'; wrap.classList.remove('compact');
-    const avail = wrap.clientHeight;
+    const avail = wrap.clientHeight - 90; // lascia spazio per la startBar
     const needed = inner.scrollHeight;
     let scale = Math.min(1, avail/needed);
     scale = Math.max(0.6, scale);
@@ -272,20 +289,35 @@ button{appearance:none; -webkit-appearance:none}
     inner.style.marginTop = `${Math.max(0,(avail-used)*0.15)}px`;
   }
 
-  /* --- Beep --- */
-  let audioCtx=null;
-  function beep(f=880, d=0.08, type='sine'){
+  /* --- Audio (beep) + sblocco iOS --- */
+  let audioCtx = null;
+  function ensureCtx(){
+    try{ audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+    return audioCtx;
+  }
+  function beep(freq=880, dur=0.08, type='sine'){
     if(!app.beep) return;
+    const ctx = ensureCtx(); if(!ctx) return;
     try{
-      audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
-      const ctx=audioCtx, o=ctx.createOscillator(), g=ctx.createGain();
-      o.type=type; o.frequency.value=f; o.connect(g); g.connect(ctx.destination);
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type=type; o.frequency.value=freq; o.connect(g); g.connect(ctx.destination);
       g.gain.setValueAtTime(0.001, ctx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime+0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+d);
-      o.start(); o.stop(ctx.currentTime+d);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+dur);
+      o.start(); o.stop(ctx.currentTime+dur);
     }catch(e){}
   }
+  function unlockAudioOnce(){
+    try{
+      const ctx = ensureCtx(); if(!ctx) return;
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      g.gain.value=0; o.connect(g); g.connect(ctx.destination);
+      o.start(); o.stop(ctx.currentTime+0.01);
+    }catch(e){}
+  }
+  window.addEventListener('touchstart', unlockAudioOnce, {once:true, passive:true});
+  window.addEventListener('click', unlockAudioOnce, {once:true});
+  window.addEventListener('pointerup', unlockAudioOnce, {once:true});
 
   /* --- Helpers --- */
   const fmt=(ms)=> (Math.ceil(ms/100)/10).toFixed(1);
@@ -296,27 +328,29 @@ button{appearance:none; -webkit-appearance:none}
   };
   function flash(){ els.flash.classList.remove('on'); void els.flash.offsetWidth; els.flash.classList.add('on'); }
   function setPhase(p){
-    app.phase=p; els.phase.textContent = p.toUpperCase();
+    app.phase=p; $('phase').textContent = p.toUpperCase();
     if(p==='work'){ els.stage.style.background='#0a0f16'; }
     if(p==='rest'){ els.stage.style.background='#06101d'; }
     if(p==='countdown' || p==='fine'){ els.stage.style.background='#0a0f16'; }
   }
-  function setTimer(ms){ els.timeLeft.textContent = fmt(ms); }
-  function setRound(){ els.roundInfo.textContent = `Round ${app.roundIndex+1} di ${app.rounds}`; }
+  function setTimer(ms){ $('timeLeft').textContent = fmt(ms); }
+  function setRound(){ $('roundInfo').textContent = `Round ${app.roundIndex+1} di ${app.rounds}`; }
+
   function showRun(on){
+    const bar = document.querySelector('.startBar');
     if(on){
-      els.settings.style.display='none';
-      document.querySelector('.startBar').style.display='none';
-      els.run.classList.add('on');
+      $('settings').style.display='none';
+      bar.style.display='none';
+      $('run').classList.add('on');
     }else{
-      els.run.classList.remove('on');
-      els.settings.style.display='block';
-      document.querySelector('.startBar').style.display='flex';
+      $('run').classList.remove('on');
+      $('settings').style.display='block';
+      bar.style.display='flex';
       fitSettings();
-      els.phase.textContent='PRONTO';
-      els.exercise.textContent='—';
-      els.timeLeft.textContent='0.0';
-      els.nextUp.textContent='';
+      $('phase').textContent='PRONTO';
+      $('exercise').textContent='—';
+      $('timeLeft').textContent='0.0';
+      $('nextUp').textContent='';
       els.stage.style.background='#000';
     }
   }
@@ -329,8 +363,8 @@ button{appearance:none; -webkit-appearance:none}
     app.currentEx = randEx();
     app.nextEx = (app.rounds>1) ? randEx() : '';
 
-    els.exercise.textContent = (app.countdownMs>0) ? 'PARTENZA' : app.currentEx;
-    els.nextUp.textContent = (app.countdownMs>0 || app.rounds<=1) ? '' : `Dopo: ${app.nextEx}`;
+    $('exercise').textContent = (app.countdownMs>0) ? 'PARTENZA' : app.currentEx;
+    $('nextUp').textContent = (app.countdownMs>0 || app.rounds<=1) ? '' : `Dopo: ${app.nextEx}`;
     setRound();
 
     if(app.countdownMs>0){
@@ -344,20 +378,21 @@ button{appearance:none; -webkit-appearance:none}
     }
     app.raf = requestAnimationFrame(loop);
   }
+  window.__start = start; // fallback per onclick
 
   function enterWork(){
     setPhase('work');
     const t=performance.now();
     app.startTs=t; app.endTs=t+app.workMs;
-    els.exercise.textContent = app.currentEx;
-    els.nextUp.textContent = (app.roundIndex < app.rounds-1 && app.nextEx) ? `Dopo: ${app.nextEx}` : '';
+    $('exercise').textContent = app.currentEx;
+    $('nextUp').textContent = (app.roundIndex < app.rounds-1 && app.nextEx) ? `Dopo: ${app.nextEx}` : '';
     beep(1200,0.06,'square'); setTimeout(()=>beep(900,0.06,'square'),70);
     flash();
   }
 
   function enterRest(){
     setPhase('rest');
-    els.exercise.textContent = 'RECUPERO';
+    $('exercise').textContent = 'RECUPERO';
     const t=performance.now();
     app.startTs=t; app.endTs=t+app.restMs;
     beep(520,0.1,'sine');
@@ -366,8 +401,7 @@ button{appearance:none; -webkit-appearance:none}
   function nextRound(){
     app.roundIndex++;
     if(app.roundIndex >= app.rounds){
-      finish();
-      return;
+      finish(); return;
     }
     app.currentEx = app.nextEx || randEx();
     app.nextEx = (app.roundIndex < app.rounds-1) ? randEx() : '';
@@ -377,8 +411,8 @@ button{appearance:none; -webkit-appearance:none}
 
   function finish(){
     setPhase('fine');
-    els.exercise.textContent = 'FINE ✅';
-    els.nextUp.textContent = '';
+    $('exercise').textContent = 'FINE ✅';
+    $('nextUp').textContent = '';
     setTimer(0);
     beep(440,0.1,'sine'); setTimeout(()=>beep(660,0.1,'sine'),120); setTimeout(()=>beep(880,0.1,'sine'),240);
     app.running=false; cancelAnimationFrame(app.raf);
@@ -389,8 +423,7 @@ button{appearance:none; -webkit-appearance:none}
     if(!app.running || app.paused) return;
     app.paused=true; app.pauseTs=performance.now();
     cancelAnimationFrame(app.raf);
-    els.exercise.textContent='PAUSA';
-    els.nextUp.textContent='';
+    $('exercise').textContent='PAUSA'; $('nextUp').textContent='';
     $('bbToggle').textContent='Riprendi';
   }
   function resume(){
@@ -399,7 +432,10 @@ button{appearance:none; -webkit-appearance:none}
     const delta = now - app.pauseTs;
     app.startTs += delta; app.endTs += delta;
     app.paused=false; $('bbToggle').textContent='Pausa';
-    if(app.phase==='work'){ els.exercise.textContent = app.currentEx; els.nextUp.textContent = (app.roundIndex < app.rounds-1 && app.nextEx) ? `Dopo: ${app.nextEx}` : ''; }
+    if(app.phase==='work'){
+      $('exercise').textContent = app.currentEx;
+      $('nextUp').textContent = (app.roundIndex < app.rounds-1 && app.nextEx) ? `Dopo: ${app.nextEx}` : '';
+    }
     app.raf = requestAnimationFrame(loop);
   }
   function stop(){
@@ -418,11 +454,8 @@ button{appearance:none; -webkit-appearance:none}
     if(msLeft<=0){
       if(app.phase==='countdown'){ enterWork(); }
       else if(app.phase==='work'){
-        // Se è l'ultimo round, finisce subito (niente recupero)
         if(app.roundIndex >= app.rounds-1){ finish(); }
-        else{
-          if(app.restMs>0) enterRest(); else nextRound();
-        }
+        else{ if(app.restMs>0) enterRest(); else nextRound(); }
       }
       else if(app.phase==='rest'){ nextRound(); }
     }
@@ -435,10 +468,24 @@ button{appearance:none; -webkit-appearance:none}
   window.addEventListener('resize', fitSettings);
   if(window.visualViewport) window.visualViewport.addEventListener('resize', fitSettings);
 
-  $('startBtn').addEventListener('click', start, {passive:true});
+  // Start: ascolta più eventi per iOS
+  ['click','touchend','pointerup'].forEach(ev=>{
+    $('startBtn').addEventListener(ev, start, {passive:true});
+  });
+
   $('bbToggle').addEventListener('click', ()=> app.paused ? resume() : pause(), {passive:true});
   $('bbStop').addEventListener('click', stop, {passive:true});
 })();
 </script>
+
+<!-- (Opzionale) Service Worker con bust versione
+<script>
+if ('serviceWorker' in navigator) {
+  addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js?v=32').catch(()=>{});
+  });
+}
+</script>
+-->
 </body>
 </html>
