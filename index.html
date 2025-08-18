@@ -11,21 +11,25 @@
 <style>
 :root{
   --bg:#0a0f16; --panel:#0f1622; --text:#e8eef6;
-  --muted:#9db0c8; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
+  --muted:#9db0c8; --accent:#3b82f6; --danger:#ef4444;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{height:100%; overflow:hidden}
 body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"SF Pro",Inter,Roboto,Arial,sans-serif}
 button{appearance:none; -webkit-appearance:none}
 
-/* Layout: settings 1fr + start auto */
+/* Layout: header/settings scroll + start fisso in basso */
 .app{height:100dvh; display:grid; grid-template-rows:1fr auto}
 
-/* Settings */
-.settings{padding:8px 14px 10px; background:var(--panel); border-bottom:1px solid #1b2433; overflow:hidden; padding-bottom:90px;}
-.settingsInner{transform-origin:top center}
+/* SETTINGS: ora SCORRONO (niente transform/scale) */
+.settings{
+  padding:8px 14px 100px; /* 100px per non finire sotto la startBar */
+  background:var(--panel); border-bottom:1px solid #1b2433;
+  overflow:auto; -webkit-overflow-scrolling:touch; position:relative; z-index:1;
+}
+.settingsInner{max-width:720px; margin:0 auto}
 
-/* Home link + Brand */
+/* Brand + HOME */
 .brand{padding-top:calc(env(safe-area-inset-top,0px)+8px); margin:0 0 12px}
 .homeLink{
   display:inline-flex; align-items:center; gap:6px;
@@ -46,23 +50,23 @@ button{appearance:none; -webkit-appearance:none}
 .rowGrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
 @media (max-width:400px){ .rowGrid{grid-template-columns:1fr 1fr} }
 .label{font-size:13px; color:#c4d2e6}
+
 .chips{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
 .chip{
   padding:10px 12px; border-radius:12px; border:1px solid #273449; background:#0e1420; color:#d8e6fb;
   font-size:15px; font-weight:700; cursor:pointer; user-select:none; touch-action:manipulation; pointer-events:auto;
 }
 .chip.selected{background:var(--accent); border-color:transparent; color:#fff; box-shadow:0 6px 18px rgba(59,130,246,.25)}
-.settings.compact .chip{padding:8px 10px; font-size:14px}
 
-/* Start bar (fissa e sopra tutto) */
+/* Start bar FISSA e davanti a tutto */
 .startBar{
-  position:fixed; left:0; right:0; bottom:0; z-index:50;
+  position:fixed; left:0; right:0; bottom:0; z-index:9999;
   padding:2px 12px calc(6px + env(safe-area-inset-bottom));
-  background:linear-gradient(180deg,rgba(10,16,24,0),rgba(10,16,24,.55));
-  display:flex; justify-content:center; align-items:center
+  background:linear-gradient(180deg,rgba(10,16,24,0),rgba(10,16,24,.65));
+  display:flex; justify-content:center; align-items:center;
 }
 .btn{
-  width:100%; max-width:520px; height:54px; border:none; border-radius:16px;
+  width:100%; max-width:520px; height:56px; border:none; border-radius:16px;
   font-size:20px; font-weight:900; color:#fff; background:var(--accent);
   box-shadow:0 8px 18px rgba(59,130,246,.18); cursor:pointer; touch-action:manipulation; pointer-events:auto;
 }
@@ -79,7 +83,7 @@ button{appearance:none; -webkit-appearance:none}
 .timer{font-size:clamp(14px,3.5vw,22px); color:#e9f3ff; background:rgba(10,16,24,.45); padding:.4em .7em; border-radius:12px; border:1px solid rgba(255,255,255,.06); display:inline-block}
 .next{position:absolute; bottom:calc(64px + env(safe-area-inset-bottom)); left:0; right:0; text-align:center; font-size:14px; color:#c7d6ee}
 .runBar{
-  position:fixed; left:0; right:0; bottom:0;
+  position:fixed; left:0; right:0; bottom:0; z-index:9999;
   padding:max(8px, env(safe-area-inset-bottom)) 10px calc(12px + env(safe-area-inset-bottom));
   display:flex; gap:10px; justify-content:center;
   background:linear-gradient(180deg,rgba(10,16,24,0),rgba(10,16,24,.65))
@@ -202,36 +206,18 @@ button{appearance:none; -webkit-appearance:none}
 <script>
 (()=> {
   const $=id=>document.getElementById(id);
-  const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
 
-  /* --- Esercizi --- */
+  /* Esercizi */
   const EX = {
-    total: [
-      "Jumping Jack","Squat","Affondi alternati","Mountain Climber",
-      "Push-up (ginocchia se serve)","Plank","Skater","Burpee light",
-      "Good Morning a corpo libero","Sit-up"
-    ],
-    lower: [
-      "Squat","Affondi indietro","Ponte Glutei","Sumo Squat",
-      "Step laterale","Calf raise","Affondi laterali","Pistol assistito"
-    ],
-    core: [
-      "Plank","Dead Bug","Russian Twist","Crunch",
-      "Bicycle Crunch","Plank spalla-spalla","Side Plank dx","Side Plank sx"
-    ],
-    upper: [
-      "Push-up","Pike Push-up","Dips su sedia","Plank to Push",
-      "Superman","Rematore elastico/Asciugamano","Aperture scapole a pancia in giù"
-    ],
-    low: [
-      "Marcia sul posto veloce","Squat lento controllato","Good Morning lento",
-      "Affondi indietro controllati","Step touch","Ponte Glutei isometria",
-      "Calf raise lento","Wall Sit"
-    ]
+    total:["Jumping Jack","Squat","Affondi alternati","Mountain Climber","Push-up (ginocchia se serve)","Plank","Skater","Burpee light","Good Morning a corpo libero","Sit-up"],
+    lower:["Squat","Affondi indietro","Ponte Glutei","Sumo Squat","Step laterale","Calf raise","Affondi laterali","Pistol assistito"],
+    core:["Plank","Dead Bug","Russian Twist","Crunch","Bicycle Crunch","Plank spalla-spalla","Side Plank dx","Side Plank sx"],
+    upper:["Push-up","Pike Push-up","Dips su sedia","Plank to Push","Superman","Rematore elastico/Asciugamano","Aperture scapole a pancia in giù"],
+    low:["Marcia sul posto veloce","Squat lento controllato","Good Morning lento","Affondi indietro controllati","Step touch","Ponte Glutei isometria","Calf raise lento","Wall Sit"]
   };
 
-  /* --- Stato --- */
+  /* Stato */
   let app = {
     running:false, paused:false,
     workMs:30000, restMs:20000, rounds:5, countdownMs:3000,
@@ -243,10 +229,8 @@ button{appearance:none; -webkit-appearance:none}
 
   const els = {
     settings: $('settings'),
-    settingsInner: $('settingsInner'),
     run: $('run'),
     stage: $('stage'),
-    flash: $('flash'),
     roundInfo: $('roundInfo'),
     phase: $('phase'),
     exercise: $('exercise'),
@@ -256,48 +240,36 @@ button{appearance:none; -webkit-appearance:none}
     bbStop: $('bbStop')
   };
 
-  /* --- UI chips --- */
+  /* Chip UI */
   function bindChips(){
     qsa('.chip').forEach(ch=>{
       ch.addEventListener('click', ()=>{
-        const group = ch.dataset.group;
-        qsa(`.chip[data-group="${group}"]`).forEach(b=>b.classList.remove('selected'));
+        const g = ch.dataset.group, v = ch.dataset.value;
+        qsa(`.chip[data-group="${g}"]`).forEach(b=>b.classList.remove('selected'));
         ch.classList.add('selected');
-        const v = ch.dataset.value;
-        if(group==='cat') app.cat = v;
-        if(group==='work') app.workMs = +v*1000;
-        if(group==='rest') app.restMs = +v*1000;
-        if(group==='rounds') app.rounds = +v;
-        if(group==='countdown') app.countdownMs = +v*1000;
-        if(group==='beep') app.beep = (v==='on');
-        fitSettings();
+        if(g==='cat') app.cat=v;
+        if(g==='work') app.workMs=+v*1000;
+        if(g==='rest') app.restMs=+v*1000;
+        if(g==='rounds') app.rounds=+v;
+        if(g==='countdown') app.countdownMs=+v*1000;
+        if(g==='beep') app.beep=(v==='on');
       }, {passive:true});
     });
   }
 
-  /* --- Adattamento senza scroll (scala) --- */
-  function fitSettings(){
-    const wrap = els.settings, inner = $('settingsInner');
-    inner.style.transform='scale(1)'; wrap.classList.remove('compact');
-    const avail = wrap.clientHeight - 90; // lascia spazio per la startBar
-    const needed = inner.scrollHeight;
-    let scale = Math.min(1, avail/needed);
-    scale = Math.max(0.6, scale);
-    inner.style.transform = `scale(${scale})`;
-    if(scale<0.82) wrap.classList.add('compact');
-    const used = needed*scale;
-    inner.style.marginTop = `${Math.max(0,(avail-used)*0.15)}px`;
+  /* Audio (beep) + sblocco iOS */
+  let audioCtx=null;
+  function ensureCtx(){ try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} return audioCtx; }
+  function unlockAudioOnce(){
+    try{ const ctx=ensureCtx(); if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain(); g.gain.value=0; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.01);}catch(e){}
   }
+  window.addEventListener('touchstart', unlockAudioOnce, {once:true, passive:true});
+  window.addEventListener('click', unlockAudioOnce, {once:true});
+  window.addEventListener('pointerup', unlockAudioOnce, {once:true});
 
-  /* --- Audio (beep) + sblocco iOS --- */
-  let audioCtx = null;
-  function ensureCtx(){
-    try{ audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
-    return audioCtx;
-  }
-  function beep(freq=880, dur=0.08, type='sine'){
+  function beep(freq=880,dur=0.08,type='sine'){
     if(!app.beep) return;
-    const ctx = ensureCtx(); if(!ctx) return;
+    const ctx=ensureCtx(); if(!ctx) return;
     try{
       const o=ctx.createOscillator(), g=ctx.createGain();
       o.type=type; o.frequency.value=freq; o.connect(g); g.connect(ctx.destination);
@@ -307,185 +279,98 @@ button{appearance:none; -webkit-appearance:none}
       o.start(); o.stop(ctx.currentTime+dur);
     }catch(e){}
   }
-  function unlockAudioOnce(){
-    try{
-      const ctx = ensureCtx(); if(!ctx) return;
-      const o=ctx.createOscillator(), g=ctx.createGain();
-      g.gain.value=0; o.connect(g); g.connect(ctx.destination);
-      o.start(); o.stop(ctx.currentTime+0.01);
-    }catch(e){}
-  }
-  window.addEventListener('touchstart', unlockAudioOnce, {once:true, passive:true});
-  window.addEventListener('click', unlockAudioOnce, {once:true});
-  window.addEventListener('pointerup', unlockAudioOnce, {once:true});
 
-  /* --- Helpers --- */
-  const fmt=(ms)=> (Math.ceil(ms/100)/10).toFixed(1);
-  const listForCat = ()=> EX[app.cat] || EX.total;
-  const randEx = ()=> {
-    const L=listForCat();
-    return L[Math.floor(Math.random()*L.length)];
-  };
-  function flash(){ els.flash.classList.remove('on'); void els.flash.offsetWidth; els.flash.classList.add('on'); }
-  function setPhase(p){
-    app.phase=p; $('phase').textContent = p.toUpperCase();
-    if(p==='work'){ els.stage.style.background='#0a0f16'; }
-    if(p==='rest'){ els.stage.style.background='#06101d'; }
-    if(p==='countdown' || p==='fine'){ els.stage.style.background='#0a0f16'; }
-  }
-  function setTimer(ms){ $('timeLeft').textContent = fmt(ms); }
-  function setRound(){ $('roundInfo').textContent = `Round ${app.roundIndex+1} di ${app.rounds}`; }
-
+  /* Helpers */
+  const fmt=ms=>(Math.ceil(ms/100)/10).toFixed(1);
+  const randEx=()=>{ const L=EX[app.cat]||EX.total; return L[Math.floor(Math.random()*L.length)]; };
+  function setPhase(p){ app.phase=p; els.phase.textContent=p.toUpperCase(); els.stage.style.background=(p==='rest')?'#06101d':'#0a0f16'; }
+  function setTimer(ms){ els.timeLeft.textContent=fmt(ms); }
+  function setRound(){ els.roundInfo.textContent=`Round ${app.roundIndex+1} di ${app.rounds}`; }
   function showRun(on){
-    const bar = document.querySelector('.startBar');
-    if(on){
-      $('settings').style.display='none';
-      bar.style.display='none';
-      $('run').classList.add('on');
-    }else{
-      $('run').classList.remove('on');
-      $('settings').style.display='block';
-      bar.style.display='flex';
-      fitSettings();
-      $('phase').textContent='PRONTO';
-      $('exercise').textContent='—';
-      $('timeLeft').textContent='0.0';
-      $('nextUp').textContent='';
-      els.stage.style.background='#000';
+    const bar=document.querySelector('.startBar');
+    if(on){ $('settings').style.display='none'; bar.style.display='none'; $('run').classList.add('on'); }
+    else{ $('run').classList.remove('on'); $('settings').style.display='block'; bar.style.display='flex';
+      els.phase.textContent='PRONTO'; els.exercise.textContent='—'; els.timeLeft.textContent='0.0'; els.nextUp.textContent=''; els.stage.style.background='#000';
     }
   }
 
-  /* --- Flow --- */
+  /* Flow */
   function start(){
     if(app.running) return;
-    app.running = true; app.paused=false; app.roundIndex=0;
-
-    app.currentEx = randEx();
-    app.nextEx = (app.rounds>1) ? randEx() : '';
-
-    $('exercise').textContent = (app.countdownMs>0) ? 'PARTENZA' : app.currentEx;
-    $('nextUp').textContent = (app.countdownMs>0 || app.rounds<=1) ? '' : `Dopo: ${app.nextEx}`;
-    setRound();
+    app.running=true; app.paused=false; app.roundIndex=0;
+    app.currentEx=randEx(); app.nextEx=(app.rounds>1)?randEx():'';
+    els.exercise.textContent=(app.countdownMs>0)?'PARTENZA':app.currentEx;
+    els.nextUp.textContent=(app.countdownMs>0||app.rounds<=1)?'':`Dopo: ${app.nextEx}`;
+    setRound(); showRun(true);
 
     if(app.countdownMs>0){
       setPhase('countdown');
-      const t=performance.now();
-      app.startTs=t; app.endTs=t+app.countdownMs;
-      setTimer(app.countdownMs);
-      beep(660,0.12,'triangle');
-    }else{
-      enterWork();
-    }
-    app.raf = requestAnimationFrame(loop);
+      const t=performance.now(); app.startTs=t; app.endTs=t+app.countdownMs; setTimer(app.countdownMs); beep(660,0.12,'triangle');
+    }else{ enterWork(); }
+    app.raf=requestAnimationFrame(loop);
   }
-  window.__start = start; // fallback per onclick
+  window.__start=start; // fallback onclick
 
   function enterWork(){
     setPhase('work');
-    const t=performance.now();
-    app.startTs=t; app.endTs=t+app.workMs;
-    $('exercise').textContent = app.currentEx;
-    $('nextUp').textContent = (app.roundIndex < app.rounds-1 && app.nextEx) ? `Dopo: ${app.nextEx}` : '';
+    const t=performance.now(); app.startTs=t; app.endTs=t+app.workMs;
+    els.exercise.textContent=app.currentEx;
+    els.nextUp.textContent=(app.roundIndex<app.rounds-1&&app.nextEx)?`Dopo: ${app.nextEx}`:'';
     beep(1200,0.06,'square'); setTimeout(()=>beep(900,0.06,'square'),70);
-    flash();
+    // flash bordo
+    const f=document.getElementById('flash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
   }
 
   function enterRest(){
-    setPhase('rest');
-    $('exercise').textContent = 'RECUPERO';
-    const t=performance.now();
-    app.startTs=t; app.endTs=t+app.restMs;
-    beep(520,0.1,'sine');
+    setPhase('rest'); els.exercise.textContent='RECUPERO';
+    const t=performance.now(); app.startTs=t; app.endTs=t+app.restMs; beep(520,0.1,'sine');
   }
 
   function nextRound(){
     app.roundIndex++;
-    if(app.roundIndex >= app.rounds){
-      finish(); return;
-    }
-    app.currentEx = app.nextEx || randEx();
-    app.nextEx = (app.roundIndex < app.rounds-1) ? randEx() : '';
-    setRound();
-    enterWork();
+    if(app.roundIndex>=app.rounds){ finish(); return; }
+    app.currentEx=app.nextEx||randEx(); app.nextEx=(app.roundIndex<app.rounds-1)?randEx():'';
+    setRound(); enterWork();
   }
 
   function finish(){
-    setPhase('fine');
-    $('exercise').textContent = 'FINE ✅';
-    $('nextUp').textContent = '';
-    setTimer(0);
+    setPhase('fine'); els.exercise.textContent='FINE ✅'; els.nextUp.textContent=''; setTimer(0);
     beep(440,0.1,'sine'); setTimeout(()=>beep(660,0.1,'sine'),120); setTimeout(()=>beep(880,0.1,'sine'),240);
-    app.running=false; cancelAnimationFrame(app.raf);
-    setTimeout(()=>showRun(false), 700);
+    app.running=false; cancelAnimationFrame(app.raf); setTimeout(()=>showRun(false),700);
   }
 
   function pause(){
-    if(!app.running || app.paused) return;
-    app.paused=true; app.pauseTs=performance.now();
-    cancelAnimationFrame(app.raf);
-    $('exercise').textContent='PAUSA'; $('nextUp').textContent='';
-    $('bbToggle').textContent='Riprendi';
+    if(!app.running||app.paused) return;
+    app.paused=true; app.pauseTs=performance.now(); cancelAnimationFrame(app.raf);
+    els.exercise.textContent='PAUSA'; els.nextUp.textContent=''; $('bbToggle').textContent='Riprendi';
   }
   function resume(){
-    if(!app.running || !app.paused) return;
-    const now=performance.now();
-    const delta = now - app.pauseTs;
-    app.startTs += delta; app.endTs += delta;
-    app.paused=false; $('bbToggle').textContent='Pausa';
-    if(app.phase==='work'){
-      $('exercise').textContent = app.currentEx;
-      $('nextUp').textContent = (app.roundIndex < app.rounds-1 && app.nextEx) ? `Dopo: ${app.nextEx}` : '';
-    }
-    app.raf = requestAnimationFrame(loop);
+    if(!app.running||app.paused===false) return;
+    const now=performance.now(), d=now-app.pauseTs; app.startTs+=d; app.endTs+=d; app.paused=false; $('bbToggle').textContent='Pausa';
+    if(app.phase==='work'){ els.exercise.textContent=app.currentEx; els.nextUp.textContent=(app.roundIndex<app.rounds-1&&app.nextEx)?`Dopo: ${app.nextEx}`:''; }
+    app.raf=requestAnimationFrame(loop);
   }
-  function stop(){
-    app.running=false; app.paused=false; cancelAnimationFrame(app.raf);
-    showRun(false);
-  }
+  function stop(){ app.running=false; app.paused=false; cancelAnimationFrame(app.raf); showRun(false); }
 
   function loop(){
     if(!app.running) return;
-    if(app.paused){ app.raf = requestAnimationFrame(loop); return; }
-
-    const now=performance.now();
-    const msLeft = Math.max(0, app.endTs - now);
-    setTimer(msLeft);
-
+    if(app.paused){ app.raf=requestAnimationFrame(loop); return; }
+    const now=performance.now(), msLeft=Math.max(0, app.endTs-now); setTimer(msLeft);
     if(msLeft<=0){
       if(app.phase==='countdown'){ enterWork(); }
-      else if(app.phase==='work'){
-        if(app.roundIndex >= app.rounds-1){ finish(); }
-        else{ if(app.restMs>0) enterRest(); else nextRound(); }
-      }
+      else if(app.phase==='work'){ if(app.roundIndex>=app.rounds-1){ finish(); } else { app.restMs>0?enterRest():nextRound(); } }
       else if(app.phase==='rest'){ nextRound(); }
     }
-    app.raf = requestAnimationFrame(loop);
+    app.raf=requestAnimationFrame(loop);
   }
 
-  /* Events */
+  /* Eventi */
   bindChips();
-  window.addEventListener('load', fitSettings);
-  window.addEventListener('resize', fitSettings);
-  if(window.visualViewport) window.visualViewport.addEventListener('resize', fitSettings);
-
-  // Start: ascolta più eventi per iOS
-  ['click','touchend','pointerup'].forEach(ev=>{
-    $('startBtn').addEventListener(ev, start, {passive:true});
-  });
-
+  // Start: ascolta anche touch/pointer per iOS
+  ['click','touchend','pointerup'].forEach(ev=>{ $('startBtn').addEventListener(ev, start, {passive:true}); });
   $('bbToggle').addEventListener('click', ()=> app.paused ? resume() : pause(), {passive:true});
   $('bbStop').addEventListener('click', stop, {passive:true});
 })();
 </script>
-
-<!-- (Opzionale) Service Worker con bust versione
-<script>
-if ('serviceWorker' in navigator) {
-  addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=32').catch(()=>{});
-  });
-}
-</script>
--->
 </body>
 </html>
